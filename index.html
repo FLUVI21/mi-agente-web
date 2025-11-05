@@ -1,32 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Subir PDF a mi agente</title>
+  <meta charset="UTF-8">
+  <title>Agente lector de PDF</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 { color: #333; }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+      padding: 0.7rem;
+      font-size: 1rem;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #respuesta {
+      margin-top: 1.5rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
-  <h2>Sube tu PDF</h2>
-  <input type="file" id="fileInput" accept="application/pdf">
-  <button onclick="upload()">Enviar</button>
+
+  <h1>Agente lector de PDF</h1>
+  <form id="pdfForm">
+    <input type="file" id="fileInput" name="file" accept="application/pdf" required>
+    <textarea id="questionInput" name="question" placeholder="Escribe tu pregunta..." required></textarea>
+    <button type="submit">Enviar al agente</button>
+  </form>
+
+  <div id="respuesta"></div>
 
   <script>
-    async function upload() {
+    const form = document.getElementById('pdfForm');
+    const respuesta = document.getElementById('respuesta');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
       const file = document.getElementById('fileInput').files[0];
-      if (!file) return alert('Selecciona un PDF primero');
-      
+      const question = document.getElementById('questionInput').value;
+
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('question', question);
 
-      // Cambia esta URL por tu webhook de n8n
-      const webhookURL = 'https://tu-url-de-n8n/webhook/0167a775-0408-462a-b591-919a84c45d3b';
+      respuesta.innerHTML = "⏳ Procesando PDF...";
 
-      const res = await fetch(webhookURL, {
-        method: 'POST',
-        body: formData
-      });
-      
-      const text = await res.text();
-      alert('Enviado: ' + text);
-    }
+      try {
+        // ⚠️ Sustituye la URL de abajo por la de tu webhook real
+        const webhookURL = "https://TU_WEBHOOK_DE_N8N";
+        const res = await fetch(webhookURL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        respuesta.innerHTML = `<b>Respuesta:</b><br>${data.answer || JSON.stringify(data)}`;
+
+      } catch (error) {
+        respuesta.innerHTML = "❌ Error al conectar con el agente: " + error;
+      }
+    });
   </script>
+
 </body>
 </html>
